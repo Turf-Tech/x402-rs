@@ -1,4 +1,4 @@
-FROM --platform=$BUILDPLATFORM rust:bullseye AS builder
+FROM rust:bullseye AS builder
 
 ENV PORT=8080
 
@@ -13,7 +13,7 @@ COPY . ./
 RUN cargo build --release --locked
 
 # --- Stage 2 ---
-FROM --platform=$BUILDPLATFORM debian:bullseye-slim
+FROM debian:bullseye-slim
 
 ENV PORT=8080
 
