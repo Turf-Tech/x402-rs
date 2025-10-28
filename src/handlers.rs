@@ -175,7 +175,7 @@ pub async fn get_root() -> impl IntoResponse {
     <div class="wrap">
       <div class="brand">
         <div class="left">⚡️ <strong>x402 Facilitator</strong> · Avalanche (EVM)</div>
-        <div class="right dim">Powered by <strong>Turf Labs</strong> 🧪</div>
+        <div class="right dim">Powered by <strong>Turf Network</strong> 🧪</div>
       </div>
 
       <section class="term" aria-label="terminal">
@@ -205,7 +205,7 @@ POST /verify      → verify payment
 GET  /settle      → settlement schema
 POST /settle      → execute settlement
 
-⛓️  <span class="accent">Avalanche</span> ready · <span class="ok">Turf Labs</span> inside
+⛓️  <span class="accent">Avalanche</span> ready · <span class="ok">Turf Network</span> inside
         </pre>
       </section>
       <pre class="art">
