@@ -12,6 +12,7 @@
 use axum::extract::State;
 use axum::http::StatusCode;
 use axum::response::Response;
+use axum::response::Html;
 use axum::routing::{get, post};
 use axum::{Json, Router, response::IntoResponse};
 use serde_json::json;
@@ -73,11 +74,183 @@ where
         .route("/supported", get(get_supported::<A>))
 }
 
-/// `GET /`: Returns a simple greeting message from the facilitator.
+/// `GET /`: Returns a terminal-style HTML landing page for the facilitator.
 #[instrument(skip_all)]
 pub async fn get_root() -> impl IntoResponse {
     let pkg_name = env!("CARGO_PKG_NAME");
-    (StatusCode::OK, format!("Hello from {pkg_name}!"))
+    let pkg_version = env!("CARGO_PKG_VERSION");
+
+    let html = format!(r#"
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{pkg_name} — Avalanche Facilitator</title>
+    <style>
+      :root {{
+        --bg: #0b1020;
+        --panel: #0e1530;
+        --text: #cfe3ff;
+        --muted: #98a7c2;
+        --accent: #e84142; /* Avalanche red */
+        --green: #4ade80;
+        --yellow: #fbbf24;
+        --blue: #60a5fa;
+        --cyan: #22d3ee;
+        --shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+      }}
+      html, body {{ height: 100%; }}
+      body {{
+        margin: 0;
+        background: radial-gradient(1200px 600px at 70% -10%, rgba(96,165,250,0.15), transparent 60%),
+                    radial-gradient(900px 500px at -10% 20%, rgba(232,65,66,0.18), transparent 60%),
+                    var(--bg);
+        color: var(--text);
+        font: 14px/1.6 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        display: grid;
+        place-items: center;
+        padding: 32px;
+      }}
+      .wrap {{ width: 100%; max-width: 980px; }}
+      .brand {{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        letter-spacing: .4px;
+      }}
+      .brand .left {{
+        color: var(--muted);
+      }}
+      .brand .left strong {{ color: var(--text); }}
+      .term {{
+        background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent 24px) , var(--panel);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 10px;
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }}
+      .term-hdr {{
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        background: rgba(255,255,255,0.02);
+      }}
+      .dot {{ width: 10px; height: 10px; border-radius: 50%; display: inline-block; }}
+      .dot.red {{ background: #ff5f57; }}
+      .dot.yellow {{ background: #febc2e; }}
+      .dot.green {{ background: #28c840; }}
+      .title {{ margin-left: 6px; color: var(--muted); }}
+      pre {{ margin: 0; padding: 18px; white-space: pre-wrap; }}
+      .prompt {{ color: var(--cyan); }}
+      .cmd {{ color: var(--text); }}
+      .ok {{ color: var(--green); }}
+      .warn {{ color: var(--yellow); }}
+      .accent {{ color: var(--accent); }}
+      .dim {{ color: var(--muted); }}
+      a {{ color: var(--blue); text-decoration: none; }}
+      a:hover {{ text-decoration: underline; }}
+      /* Tiny ASCII mascot, fixed to bottom-right, responsive */
+      .art {{
+        position: fixed;
+        right: 8px;
+        bottom: 8px;
+        color: var(--muted);
+        /* ~10x smaller than 11px → around 1.1px; use clamp for responsiveness */
+        font-size: clamp(0.9px, 0.15vw, 1.4px);
+        line-height: 1;
+        white-space: pre;
+        opacity: 0.6;
+        pointer-events: none;
+        user-select: none;
+        padding: 0;
+        margin: 0;
+      }}
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="brand">
+        <div class="left">⚡️ <strong>x402 Facilitator</strong> · Avalanche (EVM)</div>
+        <div class="right dim">Powered by <strong>Turf Labs</strong> 🧪</div>
+      </div>
+
+      <section class="term" aria-label="terminal">
+        <div class="term-hdr">
+          <span class="dot red"></span>
+          <span class="dot yellow"></span>
+          <span class="dot green"></span>
+          <span class="title">{pkg_name} v{pkg_version}</span>
+        </div>
+        <pre>
+<span class="prompt">user@x402-facilitator</span>:<span class="dim">~</span>$ <span class="cmd">./x402-rs --status</span>
+✓ <span class="ok">Server</span> running on <span class="cmd">https://x402-avax.turf.network</span>
+✓ <span class="ok">Health check</span>: PASSED
+
+<span class="prompt">user@x402-facilitator</span>:<span class="dim">~</span>$ <span class="cmd">curl -s https://x402-avax.turf.network/supported | jq</span>
+{{
+  "networks": ["avalanche-fuji", "avalanche"],
+  "scheme": "x402/erc-3009"
+}}
+
+<span class="prompt">user@x402-facilitator</span>:<span class="dim">~</span>$ <span class="cmd">./x402-rs --help</span>
+GET  /            → terminal UI (this page)
+GET  /health      → health check
+GET  /supported   → supported networks & schemes
+GET  /verify      → verification schema
+POST /verify      → verify payment
+GET  /settle      → settlement schema
+POST /settle      → execute settlement
+
+⛓️  <span class="accent">Avalanche</span> ready · <span class="ok">Turf Labs</span> inside
+        </pre>
+      </section>
+      <pre class="art">
+                                                                                                                               
+                                                                                                                               
+                                                                                                                               
+                                                                                                                               
+                                                                                                                               
+                                                                                                                               
+                                                                                                                               
+                                                                                                                               
+                                                                                                                               
+                                                                                                                               
+                                                                                                                               
+                             ###                                                                                               
+                             ***##                                                                                             
+                              @%**#                                                                                            
+                                @%**                                                                                           
+                                  @***                                                                                         
+                                   ***                                                                                         
+                                   @@**#    #*****       ***                ********#                                          
+                                     **# *************** *****            **************                                       
+                                     ***************#*** *******        ********************                                   
+                                   ********@%*******#*** ********#      #*********************                                
+                                   ********%#**************************************************#                               
+                                   *****************##*****************************************#                               
+                                 *****************@@@********************@***********************#                             
+                                 @@***********#%%%@ ****%****************************************#                             
+                                   ******#####%    %****@**********####****###*******************#                             
+                                   %%%%%%         ****%% %%%%%%%%**#  @%#**** %%%%***********#%%%***                            
+                                              #*******@         @****   #******  @***********#  @**#                            
+                                            #*******#             @**%    @@****#  @@@@@@****#                                  
+                                           ****@                   ****     *******      #******                                 
+                                         *#**@                     @***      @****#       @#***##                                
+                                         **%@                       ***        @**#         @****#                               
+                                      ***@@                         *%@         @@**#        @@@@******                         
+                                   ****%%                          **%            *****          @@@@@@                         
+                                  @####                            ##@            ####%                                         
+      </pre>
+    </div>
+  </body>
+</html>
+"#);
+
+    (StatusCode::OK, Html(html))
 }
 
 /// `GET /supported`: Lists the x402 payment schemes and networks supported by this facilitator.
